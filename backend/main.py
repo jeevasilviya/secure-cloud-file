@@ -184,9 +184,12 @@ def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_c
             logger.warning("Malware detected for user %s file %s", user_id, safe_filename)
             raise HTTPException(status_code=400, detail="Malware detected. The file was rejected.")
 
-        if scan_result["status"] != "clean":
+        if scan_result["status"] == "error":
             logger.error("ClamAV error for user %s file %s: %s", user_id, safe_filename, scan_result.get("message"))
             raise HTTPException(status_code=503, detail="Virus scanner unavailable.")
+
+        if scan_result["status"] == "skipped":
+            logger.warning("ClamAV skipped for user %s file %s: %s", user_id, safe_filename, scan_result.get("message"))
     finally:
         if temp_file.exists():
             temp_file.unlink()
@@ -197,6 +200,7 @@ def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_c
     encrypted_file_path.write_bytes(encrypt_bytes(file_content))
 
     mime_type = file.content_type or mimetypes.guess_type(safe_filename)[0] or "application/octet-stream"
+    malware_status = scan_result.get("status", "clean")
     metadata = models.FileRecord(
         owner_id=int(user_id),
         original_filename=safe_filename,
@@ -205,7 +209,7 @@ def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_c
         file_size=len(file_content),
         mime_type=mime_type,
         encryption_status="encrypted",
-        malware_status="clean",
+        malware_status=malware_status,
         is_deleted=False,
     )
     db.add(metadata)

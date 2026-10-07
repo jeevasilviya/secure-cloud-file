@@ -265,6 +265,23 @@ class FileRouteTests(BackendTestCase):
         self.assertEqual(response.status_code, 400, response.text)
         self.assertEqual(response.json()["detail"], "File type is not allowed")
 
+    def test_upload_allows_skipped_malware_scan(self):
+        token = self.register_and_login("skippedscanuser")
+
+        with patch.object(
+            app_module,
+            "scan_file",
+            return_value={"status": "skipped", "message": "ClamAV not installed; scan skipped"},
+        ):
+            response = self.client.post(
+                "/upload",
+                files={"file": ("notes.txt", b"test content", "text/plain")},
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["filename"], "notes.txt")
+
     def test_oversized_file_is_rejected(self):
         token = self.register_and_login("largefileuser")
         original_limit = app_module.MAX_FILE_SIZE

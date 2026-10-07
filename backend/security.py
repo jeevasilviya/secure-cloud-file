@@ -55,15 +55,15 @@ def scan_file(file_path: str | Path) -> dict:
     scanner_path = Path(get_clamav_scanner_path())
     if not scanner_path.exists():
         return {
-            "status": "error",
-            "message": "ClamAV scanner is not installed or not configured",
+            "status": "skipped",
+            "message": "ClamAV scanner is not installed or not configured; upload was accepted without malware scanning.",
         }
 
     database_dir = Path(get_clamav_database_dir())
     if not database_dir.exists():
         return {
-            "status": "error",
-            "message": "ClamAV database directory is missing",
+            "status": "skipped",
+            "message": "ClamAV database directory is missing; upload was accepted without malware scanning.",
         }
 
     command = [
