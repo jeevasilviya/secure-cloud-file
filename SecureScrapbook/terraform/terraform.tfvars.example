@@ -1,0 +1,19 @@
+# =====================================================================
+# SecureScrapbook - Terraform Variable Values (Example)
+# Copy this file to terraform.tfvars to customize your deployment.
+# =====================================================================
+
+aws_region           = "us-east-1"
+environment          = "production"
+vpc_cidr             = "10.0.0.0/16"
+instance_type        = "t3.medium"
+db_username          = "securescrapbook_admin"
+db_password          = "ChangeMeToASecureRandomPassword2026!"
+security_admin_email = "security-ops@securescrapbook.internal"
+
+# Vercel Edge IP Ranges permitted on Inbound Port 443
+vercel_ip_ranges = [
+  "76.76.21.0/24",
+  "76.76.22.0/24",
+  "216.198.79.0/24"
+]
